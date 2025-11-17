@@ -77,14 +77,11 @@ def generate_sentence(meaning):
 
     return response.output_text
 
-# ----------------------
-# Murf TTS Function
-# ----------------------
 def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
     url = "https://api.murf.ai/v1/speech/generate"
 
     headers = {
-        "apikey": st.secrets["MURF_API_KEY"],
+        "Authorization": f"Bearer {st.secrets['MURF_API_KEY']}",   # JWT TOKEN HERE
         "Content-Type": "application/json"
     }
 
@@ -105,6 +102,7 @@ def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
         f.write(response.content)
 
     return output_file
+
 
 
 # ----------------------

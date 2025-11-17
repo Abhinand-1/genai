@@ -89,17 +89,9 @@ def generate_sentence(meaning):
 
 
 def text_to_speech(sentence):
-    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-    response = client.audio.speech.create(
-        model="gpt-4o-mini-audio-preview",   # ✔ correct model
-        voice="alloy",
-        input=sentence
-    )
-
-    with open("speech.mp3", "wb") as f:
-        f.write(response.read())
-
+    engine = pyttsx3.init()
+    engine.save_to_file(sentence, "speech.mp3")
+    engine.runAndWait()
     return "speech.mp3"
 
 

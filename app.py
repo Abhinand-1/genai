@@ -128,12 +128,17 @@ if uploaded:
 
     # Audio
  # Browser TTS
-    st.markdown(f"""
+components.html(f"""
+    <html>
+      <body>
         <script>
             var text = "{sentence}";
             var msg = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(msg);
         </script>
-    """, unsafe_allow_html=True)
+      </body>
+    </html>
+""", height=0, width=0)
+
 
 

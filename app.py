@@ -147,28 +147,3 @@ components.html(f"""
     </html>
 """, height=0, width=0)
 
-#_________________________
- # Use json.dumps to safely encode the string for JS
-    safe_sentence = json.dumps(sentence)
-
-    components.html(
-        f"""
-        <html>
-          <body>
-            <script>
-              // Speak after a tiny timeout to ensure the component is mounted
-              setTimeout(function() {{
-                var text = {safe_sentence};
-                var msg = new SpeechSynthesisUtterance(text);
-                // Optional: set voice/rate/pitch if desired
-                // msg.rate = 1.0;
-                // msg.pitch = 1.0;
-                window.speechSynthesis.speak(msg);
-              }}, 100);
-            </script>
-          </body>
-        </html>
-        """,
-        height=0,
-        width=0,
-    )

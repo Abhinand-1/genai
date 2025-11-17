@@ -76,12 +76,13 @@ def generate_sentence(meaning):
 
     client = openai.OpenAI(api_key=openai.api_key)
 
-    response = client.chat.completions.create(
+    response = client.responses.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        input=prompt
     )
 
-    return response.choices[0].message.content
+    return response.output_text
+
 
 
 # ----------------------

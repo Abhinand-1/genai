@@ -127,13 +127,13 @@ if uploaded:
     st.write(sentence)
 
     # Audio
-    # Browser-based TTS (no API, no errors)
-st.markdown(f"""
-    <script>
-        var text = "{sentence}";
-        var msg = new SpeechSynthesisUtterance(text);
-        window.speechSynthesis.speak(msg);
-    </script>
-""", unsafe_allow_html=True)
+ # Browser TTS
+    st.markdown(f"""
+        <script>
+            var text = "{sentence}";
+            var msg = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(msg);
+        </script>
+    """, unsafe_allow_html=True)
 
 

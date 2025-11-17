@@ -7,3 +7,5 @@ gtts
 pyttsx3
 openai
 requests
+murf
+

@@ -127,6 +127,13 @@ if uploaded:
     st.write(sentence)
 
     # Audio
-    audio_path = text_to_speech(sentence)
-    st.audio(audio_path, format="audio/mp3")
+    # Browser-based TTS (no API, no errors)
+st.markdown(f"""
+    <script>
+        var text = "{sentence}";
+        var msg = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(msg);
+    </script>
+""", unsafe_allow_html=True)
+
 

@@ -97,11 +97,36 @@ def generate_sentence(meaning):
 #-----------------------------------
 
 
-def text_to_speech(sentence):
-    engine = pyttsx3.init()
-    engine.save_to_file(sentence, "speech.mp3")
-    engine.runAndWait()
-    return "speech.mp3"
+import requests
+import streamlit as st
+
+def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
+    url = "https://api.murf.ai/v1/speech/generate"
+
+    headers = {
+        "apikey": st.secrets["MURF_API_KEY"],
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "text": text,
+        "voice": voice,
+        "format": format
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    if response.status_code != 200:
+        st.error(f"MURF API Error: {response.text}")
+        return None
+
+    # Murf returns binary audio in response.content
+    output_file = "murf_audio.mp3"
+    with open(output_file, "wb") as f:
+        f.write(response.content)
+
+    return output_file
+
 
 
 
@@ -134,6 +159,11 @@ if uploaded:
     st.write(sentence)
 
     # Audio
+audio_path = murf_tts(sentence)
+
+if audio_path:
+    st.audio(audio_path, format="audio/mp3")
+
  # Browser TTS
 components.html(f"""
     <html>

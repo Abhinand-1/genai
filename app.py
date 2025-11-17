@@ -1,0 +1,120 @@
+import streamlit as st
+import numpy as np
+from tensorflow.keras.models import load_model
+from PIL import Image
+import cv2
+from gtts import gTTS
+import openai
+import base64
+import os
+
+# ----------------------
+# Load Model
+# ----------------------
+model = load_model("best_model.h5")
+
+# Label mapping
+ALPHABET = [chr(ord('A') + i) for i in range(26)]
+label_to_char = {i: ALPHABET[i] for i in range(26)}
+
+letter_meaning = {
+    "A": "Help",
+    "B": "Water",
+    "C": "Food",
+    "D": "Call my family",
+    "E": "I am OK",
+    "F": "Stop",
+    "G": "Yes",
+    "H": "No",
+    "I": "Thank you",
+    "J": "Danger",
+    "K": "I need support",
+    "L": "Medicine",
+    "M": "I am hungry",
+    "N": "Bathroom",
+    "O": "Emergency",
+    "P": "Pick up the phone",
+    "Q": "I am scared",
+    "R": "Please wait",
+    "S": "I am sick",
+    "T": "Call doctor",
+    "U": "Come here",
+    "V": "Go away",
+    "W": "Talk to me",
+    "X": "I need rest",
+    "Y": "Where are you?",
+    "Z": "I need assistance"
+}
+
+# ----------------------
+# Prediction Function
+# ----------------------
+def predict_letter_meaning(img):
+    if img.ndim == 2:
+        img = img.reshape(28, 28, 1)
+
+    img = img.astype("float32") / 255.0
+    preds = model.predict(img.reshape(1, 28, 28, 1))[0]
+
+    idx = np.argmax(preds)
+    letter = label_to_char[idx]
+    meaning = letter_meaning.get(letter, "Unknown")
+
+    return letter, meaning, float(preds[idx])
+
+
+# ----------------------
+# Generate Sentence using OpenAI API
+# ----------------------
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+def generate_sentence(meaning):
+    prompt = (
+        f"You receive a short command: '{meaning}'. "
+        "Convert it into a clear, polite English sentence a person might say."
+    )
+
+    client = openai.OpenAI(api_key=openai.api_key)
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content
+
+
+# ----------------------
+# Streamlit UI
+# ----------------------
+st.title("🤟 Sign Language → Meaning → Sentence → Audio Generator")
+
+uploaded = st.file_uploader("Upload hand sign image", type=["jpg", "png", "jpeg"])
+
+if uploaded:
+    img = Image.open(uploaded).convert('L')
+    st.image(img, caption="Uploaded Image", width=300)
+
+    img_resized = img.resize((28, 28))
+    img_array = np.array(img_resized)
+
+    # Prediction
+    letter, meaning, prob = predict_letter_meaning(img_array)
+
+    st.subheader("Prediction")
+    st.write(f"**Predicted Letter:** {letter}")
+    st.write(f"**Meaning:** {meaning}")
+    st.write(f"**Confidence:** {prob:.4f}")
+
+    # Generate sentence
+    sentence = generate_sentence(meaning)
+    st.subheader("Generated Sentence")
+    st.write(sentence)
+
+    # Audio
+    tts = gTTS(text=sentence, lang="en")
+    tts.save("speech.mp3")
+
+    audio_file = open("speech.mp3", "rb")
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format="audio/mp3")

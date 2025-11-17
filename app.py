@@ -76,36 +76,71 @@ def generate_sentence(meaning):
     )
 
     return response.output_text
-
-from murf import Murf
+    
+import streamlit as st
 import base64
+from murf import Murf, MurfApiError
+import os
 
-from murf import Murf
-import base64
+def murf_tts(sentence_to_speak, voice_id="en-US-matthew", output_filename="murf_audio.mp3"):
+    """
+    Generates an audio file from text using the Murf API,
+    decodes the Base64 audio content, and saves it as an MP3.
+    """
+    st.write(f"Attempting to generate audio for: **'{sentence_to_speak}'**")
+    
+    # 1. API Initialization
+    try:
+        # Assumes MURF_API_KEY is set in st.secrets
+        client = Murf(api_key=st.secrets["MURF_API_KEY"])
+    except KeyError:
+        st.error("MURF_API_KEY not found in Streamlit secrets. Please check your configuration.")
+        return None
 
-def murf_tts(text):
-    # Initialize Murf client
-    client = Murf(api_key=st.secrets["MURF_API_KEY"])
+    # 2. Murf API Call
+    try:
+        response = client.text_to_speech.generate(
+            text=sentence_to_speak,
+            voice_id=voice_id,
+            format="MP3",
+            # CRITICAL: This tells Murf to return the audio data directly as Base64.
+            encode_as_base_64=True 
+        )
+        
+    except MurfApiError as e:
+        # Handle API errors (e.g., 400 Bad Request, 403 Forbidden/Invalid Key)
+        st.error(f"Murf API Error (Status {e.status_code}): {e.body}")
+        st.write("Please check your API key, character limit, and voice ID.")
+        return None
+    except Exception as e:
+        st.error(f"An unexpected error occurred during Murf API call: {e}")
+        return None
 
-    # Generate speech using Murf
-    response = client.text_to_speech.generate(
-        voice_id="en-US-natalie",      # SAME VOICE AS YOUR EXAMPLE
-        text=text,
-        multi_native_locale="en-US"    # SAME LOCALE AS YOUR EXAMPLE
-    )
+    # 3. CRITICAL: Retrieve Base64 Data
+    # Use 'encoded_audio' for the Base64 string, not 'audio_file'
+    base64_audio_data = getattr(response, 'encoded_audio', None)
+    
+    if not base64_audio_data:
+        st.error("Error: Murf response did not contain the 'encoded_audio' data.")
+        st.write(f"Received response object keys: {response.__dict__.keys()}")
+        return None
 
-    # Convert base64 → audio bytes
-    audio_bytes = base64.b64decode(response.audio_file)
+    # 4. Decode and Write the Audio File
+    try:
+        # Decode the Base64 string into binary bytes
+        decoded_audio_bytes = base64.b64decode(base64_audio_data)
+        
+        # Write the binary bytes to a file in **binary write mode ('wb')**
+        with open(output_filename, "wb") as f:
+            f.write(decoded_audio_bytes)
+            
+        st.success(f"✅ Audio generated and saved as `{output_filename}`.")
+        return output_filename
+        
+    except Exception as e:
+        st.error(f"Error during Base64 decoding or file writing: {e}")
+        return None
 
-    # Save to mp3 file
-    output_file = "murf_audio.mp3"
-    with open(output_file, "wb") as f:
-        f.write(audio_bytes)
-
-    return output_file
-# ----------------------
-# Streamlit UI
-# ----------------------
 st.title("🤟 Sign Language → Meaning → Sentence → Audio Generator")
 
 uploaded = st.file_uploader("Upload hand sign image", type=["jpg", "png", "jpeg"])
@@ -130,7 +165,11 @@ if uploaded:
     st.subheader("Generated Sentence")
     st.write(sentence)
 
-    # Murf TTS
+
     audio_path = murf_tts(sentence)
-    st.audio(audio_path, format="audio/mp3")
+    if audio_path and os.path.exists(audio_path):
+        audio_file = open(audio_path, 'rb')
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format='audio/mp3')
+
 

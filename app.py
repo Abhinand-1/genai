@@ -83,6 +83,25 @@ def generate_sentence(meaning):
 
     return response.output_text
 
+#----------------------------------
+#            text to speech
+#-----------------------------------
+
+
+def text_to_speech(sentence):
+    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+    response = client.audio.speech.create(
+        model="gpt-4o-mini-tts",
+        voice="alloy",
+        input=sentence
+    )
+
+    with open("speech.mp3", "wb") as f:
+        f.write(response.read())
+
+    return "speech.mp3"
+
 
 
 # ----------------------
@@ -113,9 +132,6 @@ if uploaded:
     st.write(sentence)
 
     # Audio
-    tts = gTTS(text=sentence, lang="en")
-    tts.save("speech.mp3")
+    audio_path = text_to_speech(sentence)
+    st.audio(audio_path, format="audio/mp3")
 
-    audio_file = open("speech.mp3", "rb")
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format="audio/mp3")

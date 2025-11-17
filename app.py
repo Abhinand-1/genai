@@ -80,28 +80,29 @@ def generate_sentence(meaning):
 from murf import Murf
 import base64
 
+from murf import Murf
+import base64
+
 def murf_tts(text):
+    # Initialize Murf client
     client = Murf(api_key=st.secrets["MURF_API_KEY"])
 
+    # Generate speech using Murf
     response = client.text_to_speech.generate(
-        voice_id="en-IN-priya",
+        voice_id="en-US-natalie",      # SAME VOICE AS YOUR EXAMPLE
         text=text,
-        multi_native_locale="en-IN"
+        multi_native_locale="en-US"    # SAME LOCALE AS YOUR EXAMPLE
     )
 
-
-    # Murf returns BASE64 audio, so decode it:
+    # Convert base64 → audio bytes
     audio_bytes = base64.b64decode(response.audio_file)
 
-    # Save mp3
+    # Save to mp3 file
     output_file = "murf_audio.mp3"
     with open(output_file, "wb") as f:
         f.write(audio_bytes)
 
     return output_file
-
-
-
 # ----------------------
 # Streamlit UI
 # ----------------------
@@ -131,6 +132,5 @@ if uploaded:
 
     # Murf TTS
     audio_path = murf_tts(sentence)
+    st.audio(audio_path, format="audio/mp3")
 
-    if audio_path:
-        st.audio(audio_path, format="audio/mp3")

@@ -4,5 +4,6 @@ numpy
 pillow
 opencv-python-headless
 gtts
-openai
 pyttsx3
+openai
+

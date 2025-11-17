@@ -79,7 +79,7 @@ def generate_sentence(meaning):
 import base64
 from murf import Murf
 
-def murf_tts(text, voice_id="en-US-matthew", output_filename="murf_audio.mp3"):
+def murf_tts(text, voice_id="en-US-natalie", output_filename="murf_audio.mp3"):
     client = Murf(api_key=st.secrets["MURF_API_KEY"])
 
     response = client.text_to_speech.generate(

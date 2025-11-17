@@ -77,29 +77,25 @@ def generate_sentence(meaning):
 
     return response.output_text
 
-def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
-    url = "https://api.murf.ai/v1/speech/generate"
+from murf import Murf
+import base64
 
-    headers = {
-        "token": st.secrets["MURF_API_KEY"],   # <-- JWT token header
-        "Content-Type": "application/json"
-    }
+def murf_tts(text):
+    client = Murf(api_key=st.secrets["MURF_API_KEY"])
 
-    payload = {
-        "text": text,
-        "voice": voice,
-        "format": format
-    }
+    response = client.text_to_speech.generate(
+        voice_id="en-US-natalie",   # You can change the voice here
+        text=text,
+        multi_native_locale="en-US"
+    )
 
-    response = requests.post(url, json=payload, headers=headers)
+    # Murf returns BASE64 audio, so decode it:
+    audio_bytes = base64.b64decode(response.audio_file)
 
-    if response.status_code != 200:
-        st.error(f"MURF API Error: {response.text}")
-        return None
-
+    # Save mp3
     output_file = "murf_audio.mp3"
     with open(output_file, "wb") as f:
-        f.write(response.content)
+        f.write(audio_bytes)
 
     return output_file
 

@@ -84,10 +84,11 @@ def murf_tts(text):
     client = Murf(api_key=st.secrets["MURF_API_KEY"])
 
     response = client.text_to_speech.generate(
-        voice_id="en-US-natalie",   # You can change the voice here
+        voice_id="en-IN-priya",
         text=text,
-        multi_native_locale="en-US"
+        multi_native_locale="en-IN"
     )
+
 
     # Murf returns BASE64 audio, so decode it:
     audio_bytes = base64.b64decode(response.audio_file)

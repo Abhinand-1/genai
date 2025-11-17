@@ -92,7 +92,7 @@ def text_to_speech(sentence):
     client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     response = client.audio.speech.create(
-        model="gpt-4o-mini-tts",
+        model="gpt-4o-mini-audio-preview",   # ✔ correct model
         voice="alloy",
         input=sentence
     )
@@ -101,6 +101,7 @@ def text_to_speech(sentence):
         f.write(response.read())
 
     return "speech.mp3"
+
 
 
 

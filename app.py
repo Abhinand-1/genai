@@ -81,7 +81,7 @@ def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
     url = "https://api.murf.ai/v1/speech/generate"
 
     headers = {
-        "Authorization": f"Bearer {st.secrets['MURF_API_KEY']}",   # JWT TOKEN HERE
+        "token": st.secrets["MURF_API_KEY"],   # <-- JWT token header
         "Content-Type": "application/json"
     }
 

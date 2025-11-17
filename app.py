@@ -6,6 +6,13 @@ import cv2
 from gtts import gTTS
 import openai
 import pyttsx3
+import streamlit as st
+import numpy as np
+from tensorflow.keras.models import load_model
+from PIL import Image
+import cv2
+import openai
+import streamlit.components.v1 as components   # <-- ADD THIS
 
 import base64
 import os

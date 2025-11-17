@@ -3,19 +3,8 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
 import cv2
-from gtts import gTTS
 import openai
-import pyttsx3
-import streamlit as st
-import numpy as np
-from tensorflow.keras.models import load_model
-from PIL import Image
-import cv2
-import openai
-import streamlit.components.v1 as components   # <-- ADD THIS
-
-import base64
-import os
+import requests
 
 # ----------------------
 # Load Model
@@ -71,17 +60,13 @@ def predict_letter_meaning(img):
 
     return letter, meaning, float(preds[idx])
 
-
 # ----------------------
-# Generate Sentence using OpenAI API
+# Generate Sentence (OpenAI)
 # ----------------------
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 def generate_sentence(meaning):
-    prompt = (
-        f"You receive a short command: '{meaning}'. "
-        "Convert it into a clear, polite English sentence a person might say."
-    )
+    prompt = f"Convert '{meaning}' into a clear, polite English sentence."
 
     client = openai.OpenAI(api_key=openai.api_key)
 
@@ -92,14 +77,9 @@ def generate_sentence(meaning):
 
     return response.output_text
 
-#----------------------------------
-#            text to speech
-#-----------------------------------
-
-
-import requests
-import streamlit as st
-
+# ----------------------
+# Murf TTS Function
+# ----------------------
 def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
     url = "https://api.murf.ai/v1/speech/generate"
 
@@ -120,15 +100,11 @@ def murf_tts(text, voice="en-US-wavenet-D", format="mp3"):
         st.error(f"MURF API Error: {response.text}")
         return None
 
-    # Murf returns binary audio in response.content
     output_file = "murf_audio.mp3"
     with open(output_file, "wb") as f:
         f.write(response.content)
 
     return output_file
-
-
-
 
 
 # ----------------------
@@ -153,27 +129,13 @@ if uploaded:
     st.write(f"**Meaning:** {meaning}")
     st.write(f"**Confidence:** {prob:.4f}")
 
-    # Generate sentence
+    # Sentence
     sentence = generate_sentence(meaning)
     st.subheader("Generated Sentence")
     st.write(sentence)
 
-    # Audio
-audio_path = murf_tts(sentence)
+    # Murf TTS
+    audio_path = murf_tts(sentence)
 
-if audio_path:
-    st.audio(audio_path, format="audio/mp3")
-
- # Browser TTS
-components.html(f"""
-    <html>
-      <body>
-        <script>
-            var text = "{sentence}";
-            var msg = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(msg);
-        </script>
-      </body>
-    </html>
-""", height=0, width=0)
-
+    if audio_path:
+        st.audio(audio_path, format="audio/mp3")
